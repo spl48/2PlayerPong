@@ -8,6 +8,20 @@
 
 #define LOOP_RATE 200
 
+
+/** Change the direction of a ball 90 degrees
+    @param state current state
+    @return new state with direction reversed.  */
+boing_state_t boing_ninety (boing_state_t state)
+{
+    boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_N, DIR_SW,
+                            DIR_N, DIR_SW, DIR_E, DIR_NW};
+
+    state.dir = newdir[state.dir];
+    return state;
+}
+
+
 int main (void)
 {
     int tick;
@@ -18,7 +32,7 @@ int main (void)
     pacer_init (LOOP_RATE);
     tick = 0;
     boing_state_t ball;
-    ball = boing_init (0, 1, DIR_NE);
+    ball = boing_init (0, 0, DIR_NE);
 
     //PADDLE -----
     paddle_t paddle;
@@ -47,6 +61,19 @@ int main (void)
 
             tinygl_draw_point (ball.pos, 1);
 
+            int futureY;
+            if (ball.pos.x == 3) {
+                if (ball.dir == DIR_NW) {
+                    futureY = ball.pos.y + 1;
+                } else if (ball.dir == DIR_SW) {
+                    futureY = ball.pos.y - 1;
+                }
+                if (futureY == paddle.lpos.y || futureY == paddle.rpos.y || futureY == paddle.lpos.y+1 || ball.pos.y == paddle.lpos.y || ball.pos.y == paddle.rpos.y || ball.pos.y == paddle.lpos.y+1) {
+                    ball = boing_ninety(ball);
+                } else {
+
+                }
+            }
         }
 
 
