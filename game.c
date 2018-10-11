@@ -17,18 +17,22 @@ typedef struct paddle paddle_t;
 
 
 static paddle_t go_left(paddle_t paddle) {
-    tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
-    paddle.lpos.y = paddle.lpos.y - 1;
-    paddle.rpos.y = paddle.rpos.y - 1;
-    tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    if (paddle.lpos.y > 0) {
+        tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
+        paddle.lpos.y = paddle.lpos.y - 1;
+        paddle.rpos.y = paddle.rpos.y - 1;
+        tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    }
     return paddle;
 }
 
 static paddle_t go_right(paddle_t paddle) {
-    tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
-    paddle.lpos.y = paddle.lpos.y + 1;
-    paddle.rpos.y = paddle.rpos.y + 1;
-    tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    if (paddle.rpos.y < TINYGL_HEIGHT-1) {
+        tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
+        paddle.lpos.y = paddle.lpos.y + 1;
+        paddle.rpos.y = paddle.rpos.y + 1;
+        tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    }
     return paddle;
 }
 
