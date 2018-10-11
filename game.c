@@ -17,8 +17,8 @@ int main (void)
 
     pacer_init (LOOP_RATE);
     tick = 0;
-    boing_state_t balls[1];
-    balls[0] = boing_init (0, 1, DIR_NE);
+    boing_state_t ball;
+    ball = boing_init (0, 1, DIR_NE);
 
     //PADDLE -----
     paddle_t paddle;
@@ -36,17 +36,17 @@ int main (void)
 
         if (tick >= 100)
         {
-            int i;
 
             tick = 0;
 
             /* Erase previous position.  */
-                tinygl_draw_point (balls[0].pos, 0);
+                tinygl_draw_point (ball.pos, 0);
 
             /* Check for collision; if so reverse direction.  */
-            balls[i] = boing_update (balls[0]);
+            ball = boing_update (ball);
 
-            tinygl_draw_point (balls[0].pos, 1);
+            tinygl_draw_point (ball.pos, 1);
+
         }
 
 
