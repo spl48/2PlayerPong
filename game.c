@@ -4,37 +4,9 @@
 #include "pacer.h"
 #include "tinygl.h"
 #include "navswitch.h"
+#include "paddle.h"
 
 #define LOOP_RATE 200
-
-struct paddle
-{
-    tinygl_point_t lpos;
-    tinygl_point_t rpos;
-};
-
-typedef struct paddle paddle_t;
-
-
-static paddle_t go_left(paddle_t paddle) {
-    if (paddle.lpos.y > 0) {
-        tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
-        paddle.lpos.y = paddle.lpos.y - 1;
-        paddle.rpos.y = paddle.rpos.y - 1;
-        tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
-    }
-    return paddle;
-}
-
-static paddle_t go_right(paddle_t paddle) {
-    if (paddle.rpos.y < TINYGL_HEIGHT-1) {
-        tinygl_draw_line (paddle.lpos, paddle.rpos, 0);
-        paddle.lpos.y = paddle.lpos.y + 1;
-        paddle.rpos.y = paddle.rpos.y + 1;
-        tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
-    }
-    return paddle;
-}
 
 int main (void)
 {
@@ -50,10 +22,7 @@ int main (void)
 
     //PADDLE -----
     paddle_t paddle;
-    paddle.lpos.x = TINYGL_WIDTH - 1;
-    paddle.lpos.y = (TINYGL_HEIGHT / 2) - 1;
-    paddle.rpos.x = TINYGL_WIDTH - 1;
-    paddle.rpos.y = (TINYGL_HEIGHT / 2) + 1;
+    paddle = init_paddle();
 
     tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
 
@@ -64,8 +33,6 @@ int main (void)
         pacer_wait ();
 
         tick++;
-
-        //tinygl_draw_point (balls[0].pos, tick % 2 < 1);
 
         if (tick >= 100)
         {

@@ -19,7 +19,7 @@ all: game.out
 game.o: game.c ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-bounce5.o: bounce5.c ../../drivers/avr/system.h ../../drivers/display.h ../../utils/boing.h ../../utils/font.h ../../utils/pacer.h ../../utils/tinygl.h
+paddle.o: paddle.c paddle.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 pio.o: ../../drivers/avr/pio.c ../../drivers/avr/pio.h ../../drivers/avr/system.h
@@ -56,7 +56,7 @@ navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/a
 
 
 # Link: create ELF output file from object files.
-game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o
+game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
