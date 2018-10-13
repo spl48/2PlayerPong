@@ -32,3 +32,12 @@ paddle_t init_paddle() {
     paddle.rpos.y = (TINYGL_HEIGHT / 2) + 1;
     return paddle;
 }
+
+paddle_t init_other_paddle() {
+    paddle_t paddle;
+    paddle.lpos.x = 0;
+    paddle.lpos.y = (TINYGL_HEIGHT / 2) - 1;
+    paddle.rpos.x = 0;
+    paddle.rpos.y = (TINYGL_HEIGHT / 2) + 1;
+    return paddle;
+}

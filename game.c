@@ -5,6 +5,7 @@
 #include "tinygl.h"
 #include "navswitch.h"
 #include "paddle.h"
+#include "ir_serial.h"
 
 #define LOOP_RATE 200
 
@@ -35,11 +36,17 @@ int main (void)
 
     //PADDLE -----
     paddle_t paddle;
+    paddle_t otherPaddle;
     paddle = init_paddle();
+    otherPaddle = init_other_paddle();
 
     tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    tinygl_draw_line (otherPaddle.lpos, otherPaddle.rpos, 1);
 
     navswitch_init ();
+
+
+    ir_serial_init ();
 
     while (1)
     {
@@ -83,19 +90,31 @@ int main (void)
 
 
         // PADDLE --------------------------------------------------
+        uint8_t data;
+        int ret;
 
         navswitch_update ();
 
         if (navswitch_push_event_p (NAVSWITCH_NORTH))
         {
             paddle = go_left(paddle);
+            ir_serial_transmit (1);
         }
 
         if (navswitch_push_event_p (NAVSWITCH_SOUTH))
         {
             paddle = go_right(paddle);
+            ir_serial_transmit (2);
         }
 
+        ret = ir_serial_receive (&data);
+        if (ret == IR_SERIAL_OK)
+        {
+            if (data == 1)
+                otherPaddle = go_left(otherPaddle);
+            else if (data == 2)
+                otherPaddle = go_right(otherPaddle);
+        }
         tinygl_update ();
 
 

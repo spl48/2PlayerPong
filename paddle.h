@@ -19,4 +19,7 @@ paddle_t go_right(paddle_t paddle);
 /**Initialise the paddle. */
 paddle_t init_paddle(void);
 
+/**Initialise the other player's paddle */
+paddle_t init_other_paddle(void);
+
 #endif

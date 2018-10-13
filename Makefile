@@ -52,11 +52,17 @@ tinygl.o: ../../utils/tinygl.c ../../drivers/avr/system.h ../../drivers/display.
 navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/navswitch.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+ir_serial.o: ../../drivers/ir_serial.c ../../drivers/avr/delay.h ../../drivers/avr/system.h ../../drivers/ir.h ../../drivers/ir_serial.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+ir.o: ../../drivers/ir.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/ir.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 
 
 # Link: create ELF output file from object files.
-game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o
+game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o ir_serial.o ir.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
