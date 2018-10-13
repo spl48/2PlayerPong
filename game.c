@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <stdbool.h>
 #include "system.h"
 #include "boing.h"
 #include "pacer.h"
@@ -6,8 +7,11 @@
 #include "navswitch.h"
 #include "paddle.h"
 #include "ir_serial.h"
+#include "ir_uart.h"
+#include "../fonts/font3x5_1.h"
 
 #define LOOP_RATE 200
+#define MESSAGE_RATE 10
 
 
 /** Change the direction of a ball 90 degrees
@@ -24,6 +28,8 @@ boing_state_t boing_ninety (boing_state_t state)
 
 int main (void)
 {
+    //int playerNo = 1;
+    bool startScreen = true;
     int tick;
 
     system_init ();
@@ -40,13 +46,43 @@ int main (void)
     paddle = init_paddle();
     otherPaddle = init_other_paddle();
 
-    tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
-    tinygl_draw_line (otherPaddle.lpos, otherPaddle.rpos, 1);
+
 
     navswitch_init ();
 
 
-    ir_serial_init ();
+    //ir_serial_init ();
+    ir_uart_init ();
+
+
+    //START SCREEN---------------------
+
+    tinygl_font_set (&font3x5_1);
+    tinygl_text_speed_set (MESSAGE_RATE);
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+    tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+    tinygl_text ("CLICK TO PLAY ");
+    while (startScreen == true)
+    {
+        pacer_wait ();
+
+        tinygl_update ();
+        navswitch_update ();
+
+
+        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+            startScreen = false;
+            tinygl_clear ();
+            //set to player 1
+            //set startscreen other player to false
+        }
+    }
+
+    //MAIN GAME--------------------
+
+    tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
+    tinygl_draw_line (otherPaddle.lpos, otherPaddle.rpos, 1);
+
 
     while (1)
     {
@@ -76,7 +112,7 @@ int main (void)
 
                     ball = boing_ninety(ball);
                     if (ball.dir == DIR_NW) {
-                    ball.pos.y--;
+                        ball.pos.y--;
                     } else if (ball.dir == DIR_SW) {
                         ball.pos.y++;
                     }
@@ -90,32 +126,38 @@ int main (void)
 
 
         // PADDLE --------------------------------------------------
-        uint8_t data;
-        int ret;
+
+        char opp_dir;
 
         navswitch_update ();
 
         if (navswitch_push_event_p (NAVSWITCH_NORTH))
         {
             paddle = go_left(paddle);
-            ir_serial_transmit (1);
+            ir_uart_putc ('r');
         }
 
         if (navswitch_push_event_p (NAVSWITCH_SOUTH))
         {
             paddle = go_right(paddle);
-            ir_serial_transmit (2);
+            ir_uart_putc ('l');
         }
 
-        ret = ir_serial_receive (&data);
-        if (ret == IR_SERIAL_OK)
-        {
-            if (data == 1)
-                otherPaddle = go_left(otherPaddle);
-            else if (data == 2)
-                otherPaddle = go_right(otherPaddle);
+
+        if (ir_uart_read_ready_p ()) {
+
+           opp_dir = ir_uart_getc ();
+           if (opp_dir == 'l')
+           {
+               otherPaddle = go_left(otherPaddle);
+           } else if (opp_dir == 'r') {
+               otherPaddle = go_right(otherPaddle);
+           }
+
+           // Process the received byte.
         }
-        tinygl_update ();
+
+        tinygl_update();
 
 
 
