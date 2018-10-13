@@ -21,7 +21,6 @@ boing_state_t boing_ninety (boing_state_t state)
     return state;
 }
 
-
 int main (void)
 {
     int tick;
@@ -54,24 +53,29 @@ int main (void)
             tick = 0;
 
             /* Erase previous position.  */
-                tinygl_draw_point (ball.pos, 0);
+            tinygl_draw_point (ball.pos, 0);
 
             /* Check for collision; if so reverse direction.  */
             ball = boing_update (ball);
 
             tinygl_draw_point (ball.pos, 1);
 
-            int futureY;
-            if (ball.pos.x == 3) {
-                if (ball.dir == DIR_NW) {
-                    futureY = ball.pos.y + 1;
-                } else if (ball.dir == DIR_SW) {
-                    futureY = ball.pos.y - 1;
-                }
-                if (futureY == paddle.lpos.y || futureY == paddle.rpos.y || futureY == paddle.lpos.y+1 || ball.pos.y == paddle.lpos.y || ball.pos.y == paddle.rpos.y || ball.pos.y == paddle.lpos.y+1) {
-                    ball = boing_ninety(ball);
-                } else {
+            //int futureY;
+            if (ball.pos.x == 4) {
+                if (ball.pos.y == paddle.lpos.y || ball.pos.y == paddle.rpos.y || ball.pos.y == paddle.lpos.y+1) {
+                    tick += 100;
+                    tinygl_draw_point (ball.pos, 1);
+                    ball.pos.x--;
 
+                    ball = boing_ninety(ball);
+                    if (ball.dir == DIR_NW) {
+                    ball.pos.y--;
+                    } else if (ball.dir == DIR_SW) {
+                        ball.pos.y++;
+                    }
+                    tinygl_draw_point (ball.pos, 1);
+                } else {
+                    //game over
                 }
             }
         }
