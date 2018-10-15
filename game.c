@@ -1,3 +1,10 @@
+/**
+ @file game.c
+ @authors Sean Plane, John Kim
+ @date 15/10/2018
+ @brief
+ **/
+
 #include <avr/io.h>
 #include <stdbool.h>
 #include "system.h"
@@ -15,7 +22,9 @@
 
 int is_host =0;
 
-static void button_init ()
+boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2);
+
+void button_init (void)
 {
     /* Initialise port to read button 1.  */
 
@@ -24,7 +33,7 @@ static void button_init ()
 }
 
 
-static int button_pressed_p ()
+int button_pressed_p (void)
 {
     /* Return non-zero if button pressed_p.  */
 
@@ -91,6 +100,8 @@ char ball_collides(boing_state_t game_ball, paddle_t paddle){
     for(y = min_y; y <= max_y; y++){
         if(game_ball.pos.x == x && game_ball.pos.y == y){
             // Collision!
+            // Flash LED
+            //PORTC |= (1 << 2);
             return 1;
         }
     }
@@ -99,71 +110,9 @@ char ball_collides(boing_state_t game_ball, paddle_t paddle){
     return 0;
 }
 
-boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2)
-{
-    tinygl_point_t hops[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
-                             {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
-
-    state.pos.x += hops[state.dir].x;
-    state.pos.y += hops[state.dir].y;
-
-    if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
-    {
-        // game score?
-        //tinygl_clear();
-        tinygl_font_set (&font3x5_1);
-        tinygl_text_speed_set (MESSAGE_RATE);
-        tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
-        tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
-        if (state.pos.x > TINYGL_WIDTH - 1) {
-            tinygl_text("YOU LOSE");
-            ir_uart_putc ('l');
-        } else {
-            tinygl_text("YOU WIN");
-            ir_uart_putc ('w');
-        }
-        TCNT1 = 0;
-        while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
-            pacer_wait();
-            navswitch_update();
-            tinygl_update();
-        }
-        tinygl_clear();
-        is_host = 0;
-        main();
-    }
-
-    if(ball_collides(state, player1) == 1 || ball_collides(state, player2)){
-
-        // Bounce from paddle
-        boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
-                                DIR_S, DIR_SE, DIR_E, DIR_NE};
-        state.pos.x -= 2 * hops[state.dir].x;
-        state.dir = newdir[state.dir];
-    }
-    //// bounce everywhere for now
-    //if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
-    //{
-        //boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
-                                //DIR_S, DIR_SE, DIR_E, DIR_NE};
-        //state.pos.x -= 2 * hops[state.dir].x;
-        //state.dir = newdir[state.dir];
-    //}
-
-    if (state.pos.y > TINYGL_HEIGHT - 1 || state.pos.y < 0)
-    {
-        boing_dir_t newdir[] = {DIR_S, DIR_SE, DIR_E, DIR_NE,
-                                DIR_N, DIR_NW, DIR_W, DIR_SW};
-        state.pos.y -= 2 * hops[state.dir].y;
-        state.dir = newdir[state.dir];
-    }
-
-    return state;
-}
-
-
 int main (void)
 {
+    //DDRC |= (1 << 2);
     //int playerNo = 1;
     bool startScreen = true;
     int tick;
@@ -243,6 +192,7 @@ int main (void)
     {
         pacer_wait ();
 
+
         tick++;
 
         if (tick >= speed)
@@ -258,6 +208,7 @@ int main (void)
 
             /* Check for collision; if so reverse direction.  */
             if(is_host == 1){
+                //PORTC &= ~(1 << 2);
                 ball = boing_update_paddles(ball, paddle, otherPaddle);
 
                 // Send the ball position if host
@@ -272,7 +223,7 @@ int main (void)
 
         // PADDLE --------------------------------------------------
 
-        char opp_dir;
+        //char opp_dir;
 
         navswitch_update ();
 
@@ -344,8 +295,66 @@ int main (void)
         }
 
         tinygl_update();
-
-
-
     }
+}
+
+boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2)
+{
+    tinygl_point_t hops[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
+                             {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+
+    state.pos.x += hops[state.dir].x;
+    state.pos.y += hops[state.dir].y;
+
+    if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
+    {
+        // game score?
+        //tinygl_clear();
+        tinygl_font_set (&font3x5_1);
+        tinygl_text_speed_set (MESSAGE_RATE);
+        tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+        tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+        if (state.pos.x > TINYGL_WIDTH - 1) {
+            tinygl_text("YOU LOSE");
+            ir_uart_putc ('l');
+        } else {
+            tinygl_text("YOU WIN");
+            ir_uart_putc ('w');
+        }
+        TCNT1 = 0;
+        while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
+            pacer_wait();
+            navswitch_update();
+            tinygl_update();
+        }
+        tinygl_clear();
+        is_host = 0;
+        main();
+    }
+
+    if(ball_collides(state, player1) == 1 || ball_collides(state, player2)){
+        // Bounce from paddle
+        boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
+                                DIR_S, DIR_SE, DIR_E, DIR_NE};
+        state.pos.x -= 2 * hops[state.dir].x;
+        state.dir = newdir[state.dir];
+    }
+    //// bounce everywhere for now
+    //if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
+    //{
+        //boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
+                                //DIR_S, DIR_SE, DIR_E, DIR_NE};
+        //state.pos.x -= 2 * hops[state.dir].x;
+        //state.dir = newdir[state.dir];
+    //}
+
+    if (state.pos.y > TINYGL_HEIGHT - 1 || state.pos.y < 0)
+    {
+        boing_dir_t newdir[] = {DIR_S, DIR_SE, DIR_E, DIR_NE,
+                                DIR_N, DIR_NW, DIR_W, DIR_SW};
+        state.pos.y -= 2 * hops[state.dir].y;
+        state.dir = newdir[state.dir];
+    }
+
+    return state;
 }
