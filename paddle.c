@@ -1,3 +1,9 @@
+/**
+ @file paddle.c
+ @authors Sean Plane, John Kim
+ @date 15/10/2018
+ **/
+
 #include <avr/io.h>
 #include "system.h"
 #include "tinygl.h"

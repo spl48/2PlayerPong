@@ -2,7 +2,6 @@
  @file game.c
  @authors Sean Plane, John Kim
  @date 15/10/2018
- @brief
  **/
 
 #include <avr/io.h>
@@ -23,27 +22,6 @@
 int is_host =0;
 
 boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2);
-
-void button_init (void)
-{
-    /* Initialise port to read button 1.  */
-
-    /* TODO.  */
-    DDRD &= ~(1 << 3);
-}
-
-
-int button_pressed_p (void)
-{
-    /* Return non-zero if button pressed_p.  */
-
-    /* TODO.  */
-    if ((PIND & (1 << 7)) == 0) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
 
 tinygl_point_t convertCharToPaddle(char packet){
     int y1 = packet % TINYGL_HEIGHT;
@@ -78,6 +56,27 @@ unsigned char convertBallToChar(boing_state_t game_ball){
     unsigned char position = game_ball.pos.x + (game_ball.pos.y * TINYGL_WIDTH);
     packet += position;
     return packet;
+}
+
+void button_init (void)
+{
+    /* Initialise port to read button 1.  */
+
+    /* TODO.  */
+    DDRD &= ~(1 << 3);
+}
+
+
+int button_pressed_p (void)
+{
+    /* Return non-zero if button pressed_p.  */
+
+    /* TODO.  */
+    if ((PIND & (1 << 7)) == 0) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 char ball_collides(boing_state_t game_ball, paddle_t paddle){
