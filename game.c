@@ -11,7 +11,7 @@
 #include "../fonts/font3x5_1.h"
 
 #define LOOP_RATE 200
-#define MESSAGE_RATE 10
+#define MESSAGE_RATE 20
 
 int is_host =0;
 
@@ -110,6 +110,27 @@ boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddl
     if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
     {
         // game score?
+        //tinygl_clear();
+        tinygl_font_set (&font3x5_1);
+        tinygl_text_speed_set (MESSAGE_RATE);
+        tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+        tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+        if (state.pos.x > TINYGL_WIDTH - 1) {
+            tinygl_text("YOU LOSE");
+            ir_uart_putc ('l');
+        } else {
+            tinygl_text("YOU WIN");
+            ir_uart_putc ('w');
+        }
+        TCNT1 = 0;
+        while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
+            pacer_wait();
+            navswitch_update();
+            tinygl_update();
+        }
+        tinygl_clear();
+        is_host = 0;
+        main();
     }
 
     if(ball_collides(state, player1) == 1 || ball_collides(state, player2)){
@@ -216,6 +237,7 @@ int main (void)
     tinygl_draw_line (paddle.lpos, paddle.rpos, 1);
     tinygl_draw_line (otherPaddle.lpos, otherPaddle.rpos, 1);
 
+    int speed = 100;
 
     while (1)
     {
@@ -223,10 +245,13 @@ int main (void)
 
         tick++;
 
-        if (tick >= 100)
+        if (tick >= speed)
         {
 
             tick = 0;
+            if (speed >= 1) {
+                speed--;
+            }
 
             /* Erase previous position.  */
             tinygl_draw_point (ball.pos, 0);
@@ -236,7 +261,7 @@ int main (void)
                 ball = boing_update_paddles(ball, paddle, otherPaddle);
 
                 // Send the ball position if host
-                if(is_host == 1){
+                if(is_host == 1) {
                     ir_uart_putc(convertBallToChar(ball));
                 }
             }
@@ -273,7 +298,27 @@ int main (void)
         while (ir_uart_read_ready_p ()) {
 
             unsigned char packet = ir_uart_getc();
-            if(is_host == 0 && packet >= 128){
+            if (packet == 'w' || packet == 'l') {
+                tinygl_font_set (&font3x5_1);
+                tinygl_text_speed_set (MESSAGE_RATE);
+                tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+                tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+                if (packet == 'w') {
+                    tinygl_text("YOU LOSE");
+                } else {
+                    tinygl_text("YOU WIN");
+                }
+                TCNT1 = 0;
+                while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
+                    pacer_wait();
+                    navswitch_update();
+                    tinygl_update();
+                }
+                tinygl_clear();
+                is_host = 0;
+                main();
+            }
+            if(is_host == 0 && packet >= 128) {
                 // Ball
                 tinygl_draw_point(ball.pos, 0);
                 ball.pos = convertCharToBall(packet);
