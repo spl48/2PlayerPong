@@ -39,7 +39,7 @@ static int button_pressed_p ()
 tinygl_point_t convertCharToPaddle(char packet){
     int y1 = packet % TINYGL_HEIGHT;
     int y2 = packet / TINYGL_HEIGHT;
-    
+
     tinygl_point_t pos;
     pos.x = TINYGL_HEIGHT - 1 - y1; // lpos y when x = 0
     pos.y = TINYGL_HEIGHT - 1 - y2; // rpos y when x = 0
@@ -50,7 +50,7 @@ tinygl_point_t convertCharToBall(char packet){
     packet -= 128;
     int x = packet % TINYGL_WIDTH;
     int y = packet / TINYGL_WIDTH;
-    
+
     tinygl_point_t pos;
     pos.x = TINYGL_WIDTH - 1 - x;
     pos.y = TINYGL_HEIGHT - 1 - y;
@@ -75,25 +75,26 @@ char ball_collides(boing_state_t game_ball, paddle_t paddle){
     // Get the size of the paddle
     int paddle_size = paddle.lpos.y - paddle.rpos.y;
     if(paddle_size < 0) paddle_size *= -1;
-    
+
     // Get the min_y of the paddle
     int min_y = paddle.lpos.y;
     if(paddle.rpos.y < min_y) min_y = paddle.rpos.y;
-    
+
     // max_y of the paddle
     int max_y = min_y + paddle_size;
-    
+
     // Get position of the paddle
     int x = paddle.lpos.x;
-    
+
     // Check every position of the paddle
-    for(int y = min_y; y <= max_y; y++){
+    int y;
+    for(y = min_y; y <= max_y; y++){
         if(game_ball.pos.x == x && game_ball.pos.y == y){
             // Collision!
             return 1;
         }
     }
-    
+
     // No collision
     return 0;
 }
@@ -105,14 +106,14 @@ boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddl
 
     state.pos.x += hops[state.dir].x;
     state.pos.y += hops[state.dir].y;
-    
+
     if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
     {
         // game score?
     }
-    
+
     if(ball_collides(state, player1) == 1 || ball_collides(state, player2)){
-        
+
         // Bounce from paddle
         boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
                                 DIR_S, DIR_SE, DIR_E, DIR_NE};
@@ -127,14 +128,14 @@ boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddl
         //state.pos.x -= 2 * hops[state.dir].x;
         //state.dir = newdir[state.dir];
     //}
-    
+
     if (state.pos.y > TINYGL_HEIGHT - 1 || state.pos.y < 0)
     {
         boing_dir_t newdir[] = {DIR_S, DIR_SE, DIR_E, DIR_NE,
                                 DIR_N, DIR_NW, DIR_W, DIR_SW};
         state.pos.y -= 2 * hops[state.dir].y;
         state.dir = newdir[state.dir];
-    }    
+    }
 
     return state;
 }
@@ -176,9 +177,9 @@ int main (void)
     tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
     tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
     tinygl_text ("CLICK TO PLAY ");
-    
+
     button_init();
-    
+
     while (startScreen == true)
     {
         pacer_wait ();
@@ -190,13 +191,24 @@ int main (void)
             is_host = 1;
             tinygl_text ("HOST MODE");
         }
-        
-        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+
+        if (navswitch_push_event_p(NAVSWITCH_PUSH) && is_host) {
             startScreen = false;
             tinygl_clear ();
             //set to player 1
             //set startscreen other player to false
+            ir_uart_putc ('t');
         }
+
+        //If recieve ir signal from other board
+        if (ir_uart_read_ready_p ()) {
+           char opp_dir = ir_uart_getc ();
+           if (opp_dir == 't')
+           {
+               startScreen = false;
+               tinygl_clear ();
+           }
+       }
     }
 
     //MAIN GAME--------------------
@@ -210,7 +222,7 @@ int main (void)
         pacer_wait ();
 
         tick++;
-        
+
         if (tick >= 100)
         {
 
@@ -222,8 +234,8 @@ int main (void)
             /* Check for collision; if so reverse direction.  */
             if(is_host == 1){
                 ball = boing_update_paddles(ball, paddle, otherPaddle);
-                    
-                // Send the ball position if host            
+
+                // Send the ball position if host
                 if(is_host == 1){
                     ir_uart_putc(convertBallToChar(ball));
                 }
@@ -243,23 +255,23 @@ int main (void)
         {
             paddle = go_left(paddle);
             //ir_uart_putc ('r');
-            
+
             // Send my paddle position packet
             ir_uart_putc(convertPaddleToChar(paddle));
-            
+
         }
 
         if (navswitch_push_event_p (NAVSWITCH_SOUTH))
         {
             paddle = go_right(paddle);
             //ir_uart_putc ('l');
-            
+
             // Send my paddle position packet
             ir_uart_putc(convertPaddleToChar(paddle));
         }
-        
+
         while (ir_uart_read_ready_p ()) {
-            
+
             unsigned char packet = ir_uart_getc();
             if(is_host == 0 && packet >= 128){
                 // Ball
