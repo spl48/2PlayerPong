@@ -12,6 +12,7 @@
 #include "tinygl.h"
 #include "navswitch.h"
 #include "paddle.h"
+#include "conversion.h"
 #include "ir_serial.h"
 #include "ir_uart.h"
 #include "../fonts/font3x5_1.h"
@@ -22,53 +23,6 @@
 int is_host = 0;
 
 boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2);
-
-/**
- * Converts the recieved char from the other board into a point object containing an x and y coordinate of the other players paddle.
- **/
-tinygl_point_t convertCharToPaddle(char packet){
-    int y1 = packet % TINYGL_HEIGHT;
-    int y2 = packet / TINYGL_HEIGHT;
-
-    tinygl_point_t pos;
-    pos.x = TINYGL_HEIGHT - 1 - y1; // lpos y when x = 0
-    pos.y = TINYGL_HEIGHT - 1 - y2; // rpos y when x = 0
-    return pos;
-}
-
-/**
- * Converts the recieved char from the other board into a point object containing an x and y coordinate of the ball.
- **/
-tinygl_point_t convertCharToBall(char packet){
-    packet -= 128;
-    int x = packet % TINYGL_WIDTH;
-    int y = packet / TINYGL_WIDTH;
-
-    tinygl_point_t pos;
-    pos.x = TINYGL_WIDTH - 1 - x;
-    pos.y = TINYGL_HEIGHT - 1 - y;
-    return pos;
-}
-
-/**
- * Takes the current state of the given paddle and converts it into a char to be sent to the other board
- **/
-unsigned char convertPaddleToChar(paddle_t paddle_state){
-    unsigned char packet = 0;
-    unsigned char position = paddle_state.lpos.y + (paddle_state.rpos.y * TINYGL_HEIGHT);
-    packet += position;
-    return packet;
-}
-
-/**
- * Takes the current state of the given ball and converts it into a char to be sent to the other board
- **/
-unsigned char convertBallToChar(boing_state_t game_ball){
-    unsigned char packet = 128;
-    unsigned char position = game_ball.pos.x + (game_ball.pos.y * TINYGL_WIDTH);
-    packet += position;
-    return packet;
-}
 
 void button_init (void)
 {
@@ -163,6 +117,20 @@ void start_screen(bool startScreen)
     }
 }
 
+void display_win_lose(char packet)
+{
+    tinygl_font_set (&font3x5_1);
+    tinygl_text_speed_set (MESSAGE_RATE);
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+    tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+    if (packet == 'w')
+    {
+        tinygl_text("YOU LOSE");
+    } else {
+        tinygl_text("YOU WIN");
+    }
+}
+
 boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2)
 {
     tinygl_point_t hops[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
@@ -248,7 +216,7 @@ int main (void)
         if (tick >= ball_speed)
         {
             tick = 0;
-            if (ball_speed >= 1) {
+            if (ball_speed > 1) {
                 ball_speed--;
             }
 
@@ -291,17 +259,7 @@ int main (void)
             unsigned char packet = ir_uart_getc();
             if (packet == 'w' || packet == 'l')
             {
-                tinygl_font_set (&font3x5_1);
-                tinygl_text_speed_set (MESSAGE_RATE);
-                tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
-                tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
-                if (packet == 'w')
-                {
-                    tinygl_text("YOU LOSE");
-                } else {
-                    tinygl_text("YOU WIN");
-                }
-                TCNT1 = 0;
+                display_win_lose(packet);
                 while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
                     pacer_wait();
                     navswitch_update();
