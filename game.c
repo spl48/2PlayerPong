@@ -13,6 +13,7 @@
 #include "navswitch.h"
 #include "paddle.h"
 #include "conversion.h"
+#include "ball.h"
 #include "ir_serial.h"
 #include "ir_uart.h"
 #include "button.h"
@@ -196,9 +197,7 @@ int main (void)
         if (tick >= ball_speed)
         {
             tick = 0;
-            if (ball_speed > 1) {
-                ball_speed--;
-            }
+            ball_speed = update_ball_speed(ball_speed);
 
             /* Erase previous position.  */
             tinygl_draw_point (ball.pos, 0);

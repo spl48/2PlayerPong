@@ -25,6 +25,9 @@ paddle.o: paddle.c paddle.h
 conversion.o: conversion.c conversion.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+ball.o: ball.c ball.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 pio.o: ../../drivers/avr/pio.c ../../drivers/avr/pio.h ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -78,7 +81,7 @@ button.o: ../../drivers/button.c ../../drivers/avr/pio.h ../../drivers/avr/syste
 
 
 # Link: create ELF output file from object files.
-game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o conversion.o ir_serial.o ir.o ir_uart.o usart1.o timer.o timer0.o prescale.o font.o button.o
+game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o conversion.o ball.o ir_serial.o ir.o ir_uart.o usart1.o timer.o timer0.o prescale.o font.o button.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
