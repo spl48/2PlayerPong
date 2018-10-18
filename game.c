@@ -1,6 +1,6 @@
 /**
  @file game.c
- @authors Sean Plane, John Kim
+ @authors Sean Plane spl48, John Kim
  @date 15/10/2018
  **/
 
@@ -23,8 +23,6 @@
 #define MESSAGE_RATE 20
 
 int is_host = 0;
-
-boing_state_t boing_update_ball (boing_state_t state, paddle_t player1, paddle_t player2);
 
 /**
  * Runs the start screen that allows the players to choose the host of the game.
@@ -83,7 +81,7 @@ void display_win_lose(char packet)
     }
 }
 
-void end_game()
+void end_game(void)
 {
     while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
         pacer_wait();
@@ -126,6 +124,7 @@ int main (void)
         pacer_wait ();
         tick++;
 
+        // BALL ----------------------
         if (tick >= ball_speed)
         {
             tick = 0;
@@ -162,6 +161,7 @@ int main (void)
 
         navswitch_update ();
 
+        // PADDLE MOVE ----------------
         if (navswitch_push_event_p (NAVSWITCH_NORTH))
         {
             paddle = go_left(paddle);
@@ -177,6 +177,7 @@ int main (void)
             ir_uart_putc(convertPaddleToChar(paddle));
         }
 
+        // Sync screens between boards
         while (ir_uart_read_ready_p ()) {
 
             unsigned char packet = ir_uart_getc();

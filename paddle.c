@@ -1,6 +1,6 @@
 /**
  @file paddle.c
- @authors Sean Plane, John Kim
+ @authors Sean Plane spl48, John Kim
  @date 15/10/2018
  **/
 
