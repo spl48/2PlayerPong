@@ -15,6 +15,7 @@
 #include "conversion.h"
 #include "ir_serial.h"
 #include "ir_uart.h"
+#include "button.h"
 #include "../fonts/font3x5_1.h"
 
 #define LOOP_RATE 200
@@ -23,27 +24,6 @@
 int is_host = 0;
 
 boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2);
-
-void button_init (void)
-{
-    /* Initialise port to read button 1.  */
-
-    /* TODO.  */
-    DDRD &= ~(1 << 3);
-}
-
-
-int button_pressed_p (void)
-{
-    /* Return non-zero if button pressed_p.  */
-
-    /* TODO.  */
-    if ((PIND & (1 << 7)) == 0) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
 
 char ball_collides(boing_state_t game_ball, paddle_t paddle){
     // Get the size of the paddle
@@ -90,11 +70,11 @@ void start_screen(bool startScreen)
     while (startScreen == true)
     {
         pacer_wait ();
-
+        button_update ();
         tinygl_update ();
         navswitch_update ();
 
-        if(button_pressed_p()){
+        if(button_push_event_p(0)){
             is_host = 1;
             tinygl_text ("HOST MODE");
         }

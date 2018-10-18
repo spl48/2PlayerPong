@@ -73,11 +73,12 @@ timer0.o: ../../drivers/avr/timer0.c ../../drivers/avr/bits.h ../../drivers/avr/
 prescale.o: ../../drivers/avr/prescale.c ../../drivers/avr/prescale.h ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-
+button.o: ../../drivers/button.c ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/button.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
 
 # Link: create ELF output file from object files.
-game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o conversion.o ir_serial.o ir.o ir_uart.o usart1.o timer.o timer0.o prescale.o font.o
+game.out: game.o pio.o system.o timer.o display.o ledmat.o boing.o font.o pacer.o tinygl.o navswitch.o paddle.o conversion.o ir_serial.o ir.o ir_uart.o usart1.o timer.o timer0.o prescale.o font.o button.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
