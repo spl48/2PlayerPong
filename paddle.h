@@ -7,8 +7,10 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
+#include <avr/io.h>
 #include "system.h"
 #include "tinygl.h"
+#include "boing.h"
 
 typedef struct
 {
@@ -21,6 +23,8 @@ paddle_t go_left(paddle_t paddle);
 
 /**Move the paddle right. */
 paddle_t go_right(paddle_t paddle);
+
+char ball_collides(boing_state_t game_ball, paddle_t paddle);
 
 /**Initialise the paddle. */
 paddle_t init_paddle(void);

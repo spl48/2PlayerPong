@@ -24,36 +24,7 @@
 
 int is_host = 0;
 
-boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2);
-
-char ball_collides(boing_state_t game_ball, paddle_t paddle){
-    // Get the size of the paddle
-    int paddle_size = paddle.lpos.y - paddle.rpos.y;
-    if(paddle_size < 0) paddle_size *= -1;
-
-    // Get the min_y of the paddle
-    int min_y = paddle.lpos.y;
-    if(paddle.rpos.y < min_y) min_y = paddle.rpos.y;
-
-    // max_y of the paddle
-    int max_y = min_y + paddle_size;
-
-    // Get position of the paddle
-    int x = paddle.lpos.x;
-
-    // Check every position of the paddle
-    int y;
-    for(y = min_y; y <= max_y; y++){
-        if(game_ball.pos.x == x && game_ball.pos.y == y){
-            // Collision!
-            return 1;
-        }
-    }
-
-    // No collision
-    return 0;
-}
-
+boing_state_t boing_update_ball (boing_state_t state, paddle_t player1, paddle_t player2);
 
 /**
  * Runs the start screen that allows the players to choose the host of the game.
@@ -112,55 +83,16 @@ void display_win_lose(char packet)
     }
 }
 
-boing_state_t boing_update_paddles (boing_state_t state, paddle_t player1, paddle_t player2)
+void end_game()
 {
-    tinygl_point_t hops[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
-                             {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
-
-    state.pos.x += hops[state.dir].x;
-    state.pos.y += hops[state.dir].y;
-
-    if (state.pos.x > TINYGL_WIDTH - 1 || state.pos.x < 0)
-    {
-        tinygl_font_set (&font3x5_1);
-        tinygl_text_speed_set (MESSAGE_RATE);
-        tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
-        tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
-        if (state.pos.x > TINYGL_WIDTH - 1) {
-            tinygl_text("YOU LOSE");
-            ir_uart_putc ('l');
-        } else {
-            tinygl_text("YOU WIN");
-            ir_uart_putc ('w');
-        }
-        TCNT1 = 0;
-        while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
-            pacer_wait();
-            navswitch_update();
-            tinygl_update();
-        }
-        tinygl_clear();
-        is_host = 0;
-        main();
+    while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
+        pacer_wait();
+        navswitch_update();
+        tinygl_update();
     }
-
-    if(ball_collides(state, player1) == 1 || ball_collides(state, player2)){
-        // Bounce from paddle
-        boing_dir_t newdir[] = {DIR_N, DIR_NW, DIR_W, DIR_SW,
-                                DIR_S, DIR_SE, DIR_E, DIR_NE};
-        state.pos.x -= 2 * hops[state.dir].x;
-        state.dir = newdir[state.dir];
-    }
-
-    if (state.pos.y > TINYGL_HEIGHT - 1 || state.pos.y < 0)
-    {
-        boing_dir_t newdir[] = {DIR_S, DIR_SE, DIR_E, DIR_NE,
-                                DIR_N, DIR_NW, DIR_W, DIR_SW};
-        state.pos.y -= 2 * hops[state.dir].y;
-        state.dir = newdir[state.dir];
-    }
-
-    return state;
+    tinygl_clear();
+    is_host = 0;
+    main();
 }
 
 int main (void)
@@ -205,7 +137,19 @@ int main (void)
             /* Check for collision; if so reverse direction.  */
             if(is_host == 1)
             {
-                ball = boing_update_paddles(ball, paddle, otherPaddle);
+                ball = move_ball(ball);
+                if (ball.pos.x > TINYGL_WIDTH - 1 || ball.pos.x < 0) { // Game-over
+                    if (ball.pos.x > TINYGL_WIDTH - 1) {
+                        display_win_lose('l');
+                        ir_uart_putc ('w');
+                    } else {
+                        display_win_lose('w');
+                        ir_uart_putc ('l');
+                    }
+                    end_game();
+                } else {
+                    ball = update_ball(ball, paddle, otherPaddle);
+                }
 
                 // Send the ball position to other board if host
                 if(is_host == 1)
@@ -239,14 +183,7 @@ int main (void)
             if (packet == 'w' || packet == 'l')
             {
                 display_win_lose(packet);
-                while(!navswitch_push_event_p (NAVSWITCH_PUSH)) {
-                    pacer_wait();
-                    navswitch_update();
-                    tinygl_update();
-                }
-                tinygl_clear();
-                is_host = 0;
-                main();
+                end_game();
             }
             if(is_host == 0 && packet >= 128) {
                 // Ball
@@ -262,7 +199,6 @@ int main (void)
                 tinygl_draw_line (otherPaddle.lpos, otherPaddle.rpos, 1);
             }
         }
-
         tinygl_update();
     }
 }
