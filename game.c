@@ -172,7 +172,7 @@ int main (void)
             {
                 ball = increment_ball(ball, paddle, other_paddle);
                 // Send the ball position to other board
-                ir_uart_putc(convertBallToChar(ball));
+                ir_uart_putc(convert_ball_to_char(ball));
             }
             tinygl_draw_point(ball.pos, 1);
         }
@@ -184,7 +184,7 @@ int main (void)
         {
             paddle = go_left(paddle);
             // Send my paddle position packet
-            ir_uart_putc(convertPaddleToChar(paddle));
+            ir_uart_putc(convert_paddle_to_char(paddle));
 
         }
 
@@ -192,7 +192,7 @@ int main (void)
         {
             paddle = go_right(paddle);
             // Send my paddle position packet
-            ir_uart_putc(convertPaddleToChar(paddle));
+            ir_uart_putc(convert_paddle_to_char(paddle));
         }
 
         // Sync screens between boards i.e ball, and paddle positions.
@@ -208,12 +208,12 @@ int main (void)
             {
                 // Ball
                 tinygl_draw_point(ball.pos, 0);
-                ball.pos = convertCharToBall(packet);
+                ball.pos = convert_char_to_ball(packet);
                 tinygl_draw_point(ball.pos, 1);
             } else {
                 // Enemy paddle
                 tinygl_draw_line (other_paddle.lpos, other_paddle.rpos, 0);
-                tinygl_point_t ycords = convertCharToPaddle(packet);
+                tinygl_point_t ycords = convert_char_to_paddle(packet);
                 other_paddle.lpos.y = ycords.x;   //y1
                 other_paddle.rpos.y = ycords.y;   //y2
                 tinygl_draw_line (other_paddle.lpos, other_paddle.rpos, 1);
