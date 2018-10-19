@@ -2,6 +2,7 @@
  @file paddle.c
  @authors Sean Plane spl48, John Kim jki80
  @date 15/10/2018
+  @brief Handles the movement and initialisation of the paddles
  **/
 
 #ifndef PADDLE_H

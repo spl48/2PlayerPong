@@ -2,6 +2,8 @@
  @file conversion.h
  @authors Sean Plane spl48, John Kim jki80
  @date 18/10/2018
+  @brief Handles all the conversions of objects positions to char so that they can be sent
+ to the other board, and the other board can convert back to a position.
  **/
 
 #ifndef CONVERSION_H

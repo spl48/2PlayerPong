@@ -2,6 +2,7 @@
  @file ball.c
  @authors Sean Plane spl48, John Kim jki80
  @date 18/10/2018
+ @brief Controls the balls movement
  **/
 
  #include "ball.h"
@@ -44,7 +45,7 @@ boing_state_t rebound_off_side(boing_state_t ball, tinygl_point_t hops[])
 
 /** Moves the ball by one pixel in the direction the ball is travelling. */
 boing_state_t move_ball(boing_state_t ball)
- {
+{
     tinygl_point_t hops[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
                              {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
 
