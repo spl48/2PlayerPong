@@ -1,6 +1,6 @@
 /**
  @file game.c
- @authors Sean Plane spl48, John Kim
+ @authors Sean Plane spl48, John Kim jki80
  @date 15/10/2018
  **/
 
@@ -22,7 +22,8 @@
 #define LOOP_RATE 200
 #define MESSAGE_RATE 20
 
-int is_host = 0;
+int is_host = 0;  // If 1, the board is the host of the game, 0 otherwise.
+
 
 /**
  * Runs the start screen that allows the players to choose the host of the game.
@@ -44,19 +45,22 @@ void start_screen(bool startScreen)
         tinygl_update ();
         navswitch_update ();
 
-        if(button_push_event_p(0)){
+        if(button_push_event_p(0))
+        {
             is_host = 1;
-            tinygl_text ("HOST MODE");
+            tinygl_text ("HOST ");
         }
 
-        if (navswitch_push_event_p(NAVSWITCH_PUSH) && is_host) {
+        if (navswitch_push_event_p(NAVSWITCH_PUSH) && is_host) //Send a signal 't' when the host presses the nav switch to tell the other board to start the game
+        {
             startScreen = false;
             tinygl_clear ();
             ir_uart_putc ('t');
         }
 
-        //If recieve ir signal from other board stop start screen and go to main game
-        if (ir_uart_read_ready_p ()) {
+        //If recieve ir signal 't' from other board stop start screen and go to main game
+        if (ir_uart_read_ready_p ())
+        {
            char opp_dir = ir_uart_getc ();
            if (opp_dir == 't')
            {

@@ -1,6 +1,6 @@
 /**
  @file conversion.h
- @authors Sean Plane, John Kim
+ @authors Sean Plane spl48, John Kim jki80
  @date 18/10/2018
  **/
 
